@@ -15,8 +15,8 @@ import numpy as np
 import os
 
 #specify the path that contains ur dataset
-data_dir = '/Users/bikashgiri/dataandmachine/Hackathon/dataset/train_DETg9GD' 
-tdata_dir = '/Users/bikashgiri/dataandmachine/Hackathon/dataset/test_Bh8pGW3' 
+data_dir = 'add your path here' 
+tdata_dir = 'add your path here' 
 
 #check to see if the path is correct 
 os.path.exists(data_dir)
