@@ -1,0 +1,93 @@
+# Importing the Keras libraries and packages
+from keras.models import Sequential
+from keras.layers import Convolution2D
+from keras.layers import MaxPooling2D
+from keras.layers import Flatten
+from keras.layers import Dense
+from scipy.misc import imread
+from scipy.misc import imresize
+import random
+import matplotlib.pyplot as imshow
+from keras.utils import to_categorical
+from sklearn.preprocessing import LabelEncoder
+import pandas as pd
+import numpy as np
+import os
+
+#specify the path that contains ur dataset
+data_dir = '/Users/bikashgiri/dataandmachine/Hackathon/dataset/train_DETg9GD' 
+tdata_dir = '/Users/bikashgiri/dataandmachine/Hackathon/dataset/test_Bh8pGW3' 
+
+#check to see if the path is correct 
+os.path.exists(data_dir)
+
+#read the datasets using pandas libraries
+train = pd.read_csv(os.path.join(data_dir, 'train.csv'))
+test = pd.read_csv(os.path.join(tdata_dir, 'test.csv'))
+
+# Initialising the CNN
+classifier = Sequential()
+
+# Step 1 - Convolution
+classifier.add(Convolution2D(32, 3, 3, input_shape = (64, 64, 3), activation = 'relu'))
+
+# Step 2 - Pooling
+classifier.add(MaxPooling2D(pool_size = (2, 2)))
+
+
+# Step 3 - Flattening
+classifier.add(Flatten())
+
+# Step 4 - Full connection
+classifier.add(Dense(128, activation = 'relu'))
+classifier.add(Dense(3, activation = 'softmax'))
+
+# Compiling the CNN
+classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+
+""" Create an empty list and read the image and append it to the list which can be used later"""
+
+temp = []
+
+for img_name in train.ID:
+    img_path = os.path.join(data_dir, 'Train', img_name)
+    img = imread(img_path)
+    img = imresize(img, (64, 64))
+    img = img.astype('float32') # this will help us in later stage
+    temp.append(img)
+
+train_x = np.stack(temp)
+
+temp = []
+for img_name in test.ID:
+    img_path = os.path.join(tdata_dir, 'Test', img_name)
+    img = imread(img_path)
+    img = imresize(img, (64, 64))
+    temp.append(img.astype('float32'))
+
+test_x = np.stack(temp)
+
+train_x = train_x / 255.
+test_x = test_x / 255.
+
+print(train.Class.values)
+#Use label encoder to encode the categorical input
+
+lb = LabelEncoder()
+train_y = lb.fit_transform(train.Class.values)
+test_y =  to_categorical(train_y)
+type(train_y)
+
+#Fit our model into a CNN
+#Increase the number of epoch to increase the accurarcy of our CNN as a means of Parameter Tuning
+classifier.fit(train_x, test_y,epochs=6,verbose=1)
+
+#Generate a random number and read ramdom image from our dataset
+i = random.choice(train.index)
+img_name = train.ID[i]
+img = imread(os.path.join(data_dir, 'Train', img_name)).astype('float32')
+
+#Final step:Predict our model,check to see the results 
+pred = classifier.predict_classes(train_x)
+print('Original:', train.Class[i], 'Predicted:', lb.inverse_transform(pred[i]))
+
